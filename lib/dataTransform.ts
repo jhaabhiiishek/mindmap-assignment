@@ -1,4 +1,5 @@
 import dagre from 'dagre';
+import { forceSimulation, forceManyBody, forceCenter, forceLink } from 'd3-force';
 import { HierarchicalNode, MindMapNode, MindMapEdge } from '@/types';
 
 /**
@@ -10,6 +11,7 @@ const LAYOUT_CONFIG = {
     ranksep: 200,  // Increased vertical spacing for step edges
     nodeWidth: 250,
     nodeHeight: 80,
+    radialStep: 350, // Radius step for radial layout
 };
 
 /**
@@ -71,7 +73,7 @@ export function flattenHierarchy(
 }
 
 /**
- * Calculate layout positions for nodes using dagre
+ * Calculate layout positions for nodes using dagre (Tree View)
  * @param nodes - Array of nodes to layout
  * @param edges - Array of edges connecting nodes
  * @returns Nodes with updated positions
@@ -119,6 +121,133 @@ export function calculateLayout(
 
     return layoutedNodes;
 }
+
+/**
+ * Calculate layout positions using d3-force (Graph View)
+ * @param nodes - Array of nodes to layout
+ * @param edges - Array of edges connecting nodes
+ * @returns Nodes with updated positions
+ */
+export function calculateGraphLayout(
+    nodes: MindMapNode[],
+    edges: MindMapEdge[]
+): MindMapNode[] {
+    // Clone nodes and edges to avoid mutating original state directly during simulation
+    const simulationNodes = nodes.map(n => ({ ...n }));
+    const simulationEdges = edges.map(e => ({ ...e }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const simulation = forceSimulation(simulationNodes as any)
+        .force('charge', forceManyBody().strength(-2000)) // Strong repulsion
+        .force('center', forceCenter(0, 0)) // Center at 0,0
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .force('link', forceLink(simulationEdges as any).id((d: any) => d.id).distance(250)) // Distance for links
+        .stop();
+
+    // Run simulation synchronously
+    // 300 ticks is usually enough for it to stabilize
+    for (let i = 0; i < 300; ++i) simulation.tick();
+
+    // Update original nodes with new positions
+    return nodes.map((node, index) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const simNode = simulationNodes[index] as any;
+        return {
+            ...node,
+            position: {
+                x: simNode.x - LAYOUT_CONFIG.nodeWidth / 2,
+                y: simNode.y - LAYOUT_CONFIG.nodeHeight / 2,
+            }
+        };
+    });
+
+}
+
+/**
+ * Calculate layout positions using a deterministic Radial algorithm
+ * @param nodes - Array of nodes to layout
+ * @param edges - Array of edges connecting nodes
+ * @returns Nodes with updated positions
+ */
+export function calculateRadialLayout(
+    nodes: MindMapNode[],
+    edges: MindMapEdge[]
+): MindMapNode[] {
+    // 1. Identify Root
+    const root = nodes.find(n => n.data.depth === 0) || nodes[0];
+    if (!root) return nodes;
+
+    // 2. Build adjacency map for quick child lookup
+    const childrenMap = new Map<string, string[]>();
+    edges.forEach(edge => {
+        const source = edge.source;
+        const target = edge.target;
+        if (!childrenMap.has(source)) {
+            childrenMap.set(source, []);
+        }
+        childrenMap.get(source)?.push(target);
+    });
+
+    // 3. Map to store positions
+    const positions = new Map<string, { x: number, y: number }>();
+    positions.set(root.id, { x: 0, y: 0 }); // Root at center
+
+    // 4. Recursive positioning function (Sector based)
+    const positionChildren = (
+        parentId: string,
+        startAngle: number,
+        endAngle: number,
+        depth: number
+    ) => {
+        const children = childrenMap.get(parentId) || [];
+        if (children.length === 0) return;
+
+        // Sort children if needed (e.g. by label?) - Keeping unstable order is fine for now
+        // But stable order is better. Let's sort by ID to be deterministic.
+        children.sort();
+
+        // Calculate available angle per child
+        const totalAngle = endAngle - startAngle;
+        const anglePerChild = totalAngle / children.length;
+
+        children.forEach((childId, index) => {
+            const childStart = startAngle + index * anglePerChild;
+            const childEnd = childStart + anglePerChild;
+            const midAngle = childStart + anglePerChild / 2;
+
+            // Calculate Position
+            // Radius increases with depth
+            const R = depth * LAYOUT_CONFIG.radialStep;
+
+            // Convert polar to cartesian
+            // Subtract PI/2 to start from top (12 o'clock) instead of right (3 o'clock)
+            const x = R * Math.cos(midAngle - Math.PI / 2);
+            const y = R * Math.sin(midAngle - Math.PI / 2);
+
+            positions.set(childId, {
+                x: x - LAYOUT_CONFIG.nodeWidth / 2, // Center correction
+                y: y - LAYOUT_CONFIG.nodeHeight / 2
+            });
+
+            // Recursively position grandchildren
+            positionChildren(childId, childStart, childEnd, depth + 1);
+        });
+    };
+
+    // Start recursion for Root's children
+    // Give full 360 degrees (2 * PI) to root's children
+    positionChildren(root.id, 0, 2 * Math.PI, 1);
+
+    // 5. Update nodes
+    return nodes.map(node => {
+        const pos = positions.get(node.id) || node.position;
+        return {
+            ...node,
+            position: pos
+        };
+    });
+}
+
 
 /**
  * Filter nodes and edges to hide descendants of collapsed nodes
@@ -177,6 +306,7 @@ export function filterCollapsedNodes(
  * @param nodeId - ID of the node to update
  * @param updates - Partial updates to apply
  * @returns Updated hierarchical data (immutable)
+ *
  */
 export function updateHierarchicalData(
     hierarchicalData: HierarchicalNode,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useMindMapStore } from '@/store/useMindMapStore';
+import { HierarchicalNode } from '@/types';
 import initialData from '@/data/initialData.json';
 import Sidebar from '@/components/layout/Sidebar';
 
@@ -39,7 +40,7 @@ export default function Home() {
 
       // If no maps exist (first time user), create default map
       if (currentMaps.length === 0) {
-        createMap('Enterprise Software Architecture', initialData as any);
+        createMap('Enterprise Software Architecture', initialData as unknown as HierarchicalNode);
       } else {
         // Maps exist from localStorage
         // If no active map is set, activate the first one
@@ -68,6 +69,7 @@ export default function Home() {
     }, 100); // Small delay for persistence to load
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

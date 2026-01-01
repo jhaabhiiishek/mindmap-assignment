@@ -1,38 +1,62 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Info, Layers, Hash, Plus, Trash2 } from 'lucide-react';
+import { X, Info, Layers, Hash, Plus, Trash2, Edit2, Save, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMindMapStore } from '@/store/useMindMapStore';
+import { MindMapNode, HierarchicalNode } from '@/types';
 
 interface SidePanelProps {
     visible: boolean;
     onClose: () => void;
 }
 
-/**
- * SidePanel component for displaying and editing node details
- * Slides in from the right when a node is selected
- */
-export default function SidePanel({ visible, onClose }: SidePanelProps) {
-    const {
-        nodes,
-        selectedNodeId,
-        updateNodeLabel,
-        updateNodeSummary,
-        updateNodeDetails,
-        addNode,
-        deleteNode,
-        hierarchicalData
-    } = useMindMapStore();
+// Inner component to handle state resetting via key
+function NodeDetails({
+    node,
+    onClose,
+    onUpdateLabel,
+    onUpdateSummary,
+    onUpdateDetails,
+    onAddNode,
+    onDeleteNode,
+    isRoot
+}: {
+    node: MindMapNode;
+    onClose: () => void;
+    onUpdateLabel: (id: string, v: string) => void;
+    onUpdateSummary: (id: string, v: string) => void;
+    onUpdateDetails: (id: string, v: string) => void;
+    onAddNode: (id: string, data: Partial<HierarchicalNode>) => void;
+    onDeleteNode: (id: string) => void;
+    isRoot: boolean;
+}) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValues, setEditValues] = useState({
+        label: node.data.label,
+        summary: node.data.summary,
+        details: node.data.details,
+    });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+    const { data } = node;
+    const { label, nodeType, summary, details, depth, hasChildren } = data;
 
-    if (!visible || !selectedNode) return null;
+    const handleSave = () => {
+        onUpdateLabel(node.id, editValues.label);
+        onUpdateSummary(node.id, editValues.summary);
+        onUpdateDetails(node.id, editValues.details);
+        setIsEditing(false);
+    };
 
-    const { data } = selectedNode;
-    const { label, nodeType, summary, details, depth, hasChildren } = data as any;
+    const handleCancel = () => {
+        setEditValues({
+            label: node.data.label,
+            summary: node.data.summary,
+            details: node.data.details,
+        });
+        setIsEditing(false);
+    };
 
     const getNodeTypeColor = () => {
         switch (depth) {
@@ -48,16 +72,7 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
     };
 
     return (
-        <div
-            className={cn(
-                'fixed right-4 top-20 bottom-4 w-96 z-50', // Positioned as a floating card
-                'bg-slate-900/95 backdrop-blur-xl',
-                'border border-slate-700 rounded-xl',
-                'shadow-2xl shadow-black/50',
-                'animate-in slide-in-from-right duration-300',
-                'overflow-y-auto'
-            )}
-        >
+        <div className="flex flex-col h-full">
             {/* Header */}
             <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700 p-5">
                 <div className="flex items-center justify-between">
@@ -65,37 +80,54 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                         <Info className="w-5 h-5 text-cyan-400" />
                         Node Details
                     </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
-                    >
-                        <X className="w-4 h-4 text-slate-400" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {!isEditing && (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="p-1.5 rounded-lg hover:bg-slate-800 transition-colors text-slate-400 hover:text-cyan-400"
+                                title="Edit Node"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                        >
+                            <X className="w-4 h-4 text-slate-400" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="p-5 space-y-6">
+            <div className="p-5 space-y-6 overflow-y-auto flex-1">
                 {/* Label - Editable */}
                 <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                         <Hash className="w-3 h-3" />
                         Label
                     </label>
-                    <input
-                        type="text"
-                        value={label}
-                        onChange={(e) => updateNodeLabel(selectedNode.id, e.target.value)}
-                        className={cn(
-                            'w-full px-3 py-2 rounded-lg',
-                            'bg-slate-950/50 border border-slate-700',
-                            'text-white placeholder-slate-600',
-                            'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
-                            'transition-all duration-200',
-                            'font-medium'
-                        )}
-                        placeholder="Enter node label..."
-                    />
+                    {isEditing ? (
+                        <input
+                            type="text"
+                            value={editValues.label}
+                            onChange={(e) => setEditValues({ ...editValues, label: e.target.value })}
+                            className={cn(
+                                'w-full px-3 py-2 rounded-lg',
+                                'bg-slate-950/50 border border-slate-700',
+                                'text-white placeholder-slate-600',
+                                'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
+                                'transition-all duration-200',
+                                'font-medium'
+                            )}
+                            placeholder="Enter node label..."
+                        />
+                    ) : (
+                        <div className="text-lg font-bold text-white px-1">
+                            {editValues.label || label}
+                        </div>
+                    )}
                 </div>
 
                 {/* Node Info Badges */}
@@ -122,20 +154,26 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                         Summary
                     </label>
-                    <textarea
-                        value={summary}
-                        onChange={(e) => updateNodeSummary(selectedNode.id, e.target.value)}
-                        className={cn(
-                            'w-full px-3 py-2 rounded-lg',
-                            'bg-slate-950/50 border border-slate-700',
-                            'text-slate-300 placeholder-slate-600',
-                            'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
-                            'transition-all duration-200',
-                            'text-sm leading-relaxed',
-                            'min-h-[80px] resize-y'
-                        )}
-                        placeholder="Enter node summary..."
-                    />
+                    {isEditing ? (
+                        <textarea
+                            value={editValues.summary}
+                            onChange={(e) => setEditValues({ ...editValues, summary: e.target.value })}
+                            className={cn(
+                                'w-full px-3 py-2 rounded-lg',
+                                'bg-slate-950/50 border border-slate-700',
+                                'text-slate-300 placeholder-slate-600',
+                                'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
+                                'transition-all duration-200',
+                                'text-sm leading-relaxed',
+                                'min-h-[80px] resize-y'
+                            )}
+                            placeholder="Enter node summary..."
+                        />
+                    ) : (
+                        <div className="text-sm text-slate-300 leading-relaxed px-1 whitespace-pre-wrap">
+                            {editValues.summary || summary || <span className="text-slate-500 italic">No summary provided</span>}
+                        </div>
+                    )}
                 </div>
 
                 {/* Details - Editable */}
@@ -143,32 +181,58 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                         Details
                     </label>
-                    <textarea
-                        value={details}
-                        onChange={(e) => updateNodeDetails(selectedNode.id, e.target.value)}
-                        className={cn(
-                            'w-full px-3 py-2 rounded-lg',
-                            'bg-slate-950/50 border border-slate-700',
-                            'text-slate-300 placeholder-slate-600',
-                            'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
-                            'transition-all duration-200',
-                            'text-sm leading-relaxed',
-                            'min-h-[120px] resize-y'
-                        )}
-                        placeholder="Enter node details..."
-                    />
+                    {isEditing ? (
+                        <textarea
+                            value={editValues.details}
+                            onChange={(e) => setEditValues({ ...editValues, details: e.target.value })}
+                            className={cn(
+                                'w-full px-3 py-2 rounded-lg',
+                                'bg-slate-950/50 border border-slate-700',
+                                'text-slate-300 placeholder-slate-600',
+                                'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50',
+                                'transition-all duration-200',
+                                'text-sm leading-relaxed',
+                                'min-h-[120px] resize-y'
+                            )}
+                            placeholder="Enter node details..."
+                        />
+                    ) : (
+                        <div className="text-sm text-slate-300 leading-relaxed px-1 whitespace-pre-wrap">
+                            {editValues.details || details || <span className="text-slate-500 italic">No details provided</span>}
+                        </div>
+                    )}
                 </div>
+
+                {/* Save/Cancel Actions */}
+                {isEditing && (
+                    <div className="flex gap-2 pt-2 pb-2">
+                        <button
+                            onClick={handleSave}
+                            className="flex-1 px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                        >
+                            <Save className="w-4 h-4" />
+                            Save Changes
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            className="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                        >
+                            <RotateCcw className="w-4 h-4" />
+                            Cancel
+                        </button>
+                    </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-4 border-t border-slate-800">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Actions
+                        Structure Actions
                     </label>
 
                     {/* Add Child Node Button */}
                     <button
                         onClick={() => {
-                            addNode(selectedNode.id, {
+                            onAddNode(node.id, {
                                 label: `New Child`,
                                 summary: 'A newly created node',
                                 details: 'This node was created dynamically',
@@ -188,8 +252,8 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                         Add Child Node
                     </button>
 
-                    {/* Delete Node Button - Only for non-root nodes */}
-                    {selectedNode.id !== hierarchicalData?.id && (
+                    {/* Delete Node Button */}
+                    {!isRoot && (
                         <>
                             {!showDeleteConfirm ? (
                                 <button
@@ -214,7 +278,7 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => {
-                                                deleteNode(selectedNode.id);
+                                                onDeleteNode(node.id);
                                                 setShowDeleteConfirm(false);
                                             }}
                                             className="flex-1 px-2 py-1.5 rounded bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-colors"
@@ -234,6 +298,51 @@ export default function SidePanel({ visible, onClose }: SidePanelProps) {
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+export default function SidePanel({ visible, onClose }: SidePanelProps) {
+    const {
+        nodes,
+        selectedNodeId,
+        updateNodeLabel,
+        updateNodeSummary,
+        updateNodeDetails,
+        addNode,
+        deleteNode,
+        hierarchicalData
+    } = useMindMapStore();
+
+    if (!visible || !selectedNodeId) return null;
+
+    const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+    if (!selectedNode) return null;
+
+    const isRoot = selectedNode.id === hierarchicalData?.id;
+
+    return (
+        <div
+            className={cn(
+                'fixed right-4 top-20 bottom-4 w-96 z-50', // Positioned as a floating card
+                'bg-slate-900/95 backdrop-blur-xl',
+                'border border-slate-700 rounded-xl',
+                'shadow-2xl shadow-black/50',
+                'animate-in slide-in-from-right duration-300',
+                'overflow-hidden' // handled by inner scroll
+            )}
+        >
+            <NodeDetails
+                key={selectedNode.id} // Forces reset when selecting different node
+                node={selectedNode}
+                onClose={onClose}
+                onUpdateLabel={updateNodeLabel}
+                onUpdateSummary={updateNodeSummary}
+                onUpdateDetails={updateNodeDetails}
+                onAddNode={addNode}
+                onDeleteNode={deleteNode}
+                isRoot={isRoot}
+            />
         </div>
     );
 }

@@ -14,12 +14,12 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useMindMapStore } from '@/store/useMindMapStore';
-import MindMapNode from './MindMapNode';
+import MindMapNodeComponent from './MindMapNode';
 import HoverCard from './HoverCard';
 import SidePanel from './SidePanel';
 import TopToolbar from './TopToolbar';
 import { JsonUpload } from './JsonUpload';
-import { HierarchicalNode } from '@/types';
+import { HierarchicalNode, MindMapNode, MindMapEdge } from '@/types';
 
 /**
  * Inner component that has access to React Flow instance
@@ -40,6 +40,8 @@ function MindMapInner() {
         drillUp,
         downloadMap,
         drillStack,
+        layoutMode,
+        setLayoutMode,
     } = useMindMapStore();
 
     const reactFlowInstance = useReactFlow();
@@ -52,7 +54,7 @@ function MindMapInner() {
     const jsonUploadRef = useRef<HTMLInputElement>(null);
 
     // Register custom node types
-    const nodeTypes = useMemo(() => ({ mindmapNode: MindMapNode }), []);
+    const nodeTypes = useMemo(() => ({ mindmapNode: MindMapNodeComponent }), []);
 
     // Fit view when switching maps
     useEffect(() => {
@@ -71,7 +73,7 @@ function MindMapInner() {
 
     // Handle node click for selection
     const handleNodeClick = useCallback(
-        (_event: React.MouseEvent, node: any) => {
+        (_event: React.MouseEvent, node: MindMapNode) => {
             selectNode(node.id);
         },
         [selectNode]
@@ -84,7 +86,7 @@ function MindMapInner() {
 
     // Handle node hover
     const handleNodeMouseEnter = useCallback(
-        (_event: React.MouseEvent, node: any) => {
+        (_event: React.MouseEvent, node: MindMapNode) => {
             setHoveredNodeId(node.id);
         },
         []
@@ -131,45 +133,46 @@ function MindMapInner() {
     const hoveredNode = nodes.find((n) => n.id === hoveredNodeId);
 
     // Get edge color based on target node depth and selection - Matching node theme
-    const getEdgeStyle = (edge: any, isHighlighted: boolean) => {
-        const targetNode = nodes.find((n) => n.id === edge.target);
-        const depth = targetNode?.data?.depth || 0;
-
-        let stroke = '#52525b'; // Zinc-600 default
-        let strokeWidth = 2;
-
-        switch (depth) {
-            case 1:
-                stroke = '#60a5fa'; // Blue-400 (from Root)
-                strokeWidth = 3;
-                break;
-            case 2:
-                stroke = '#4ade80'; // Green-400 (from Child)
-                strokeWidth = 2.5;
-                break;
-            case 3:
-                stroke = '#fb923c'; // Orange-400 (from Grandchild)
-                strokeWidth = 2;
-                break;
-            default:
-                stroke = '#a1a1aa'; // Zinc-400
-                strokeWidth = 2;
-        }
-
-        if (isHighlighted) {
-            stroke = '#22d3ee'; // Cyan-400 highlight
-            strokeWidth += 2;
-            return {
-                stroke,
-                strokeWidth,
-                filter: 'drop-shadow(0 0 4px rgba(34, 211, 238, 0.5))',
-            };
-        }
-
-        return { stroke, strokeWidth };
-    };
-
     const styledEdges = useMemo(() => {
+        // Helper to get edge color based on target node depth and selection
+        const getEdgeStyle = (edge: MindMapEdge, isHighlighted: boolean) => {
+            const targetNode = nodes.find((n) => n.id === edge.target);
+            const depth = targetNode?.data?.depth || 0;
+
+            let stroke = '#52525b'; // Zinc-600 default
+            let strokeWidth = 2;
+
+            switch (depth) {
+                case 1:
+                    stroke = '#60a5fa'; // Blue-400 (from Root)
+                    strokeWidth = 3;
+                    break;
+                case 2:
+                    stroke = '#4ade80'; // Green-400 (from Child)
+                    strokeWidth = 2.5;
+                    break;
+                case 3:
+                    stroke = '#fb923c'; // Orange-400 (from Grandchild)
+                    strokeWidth = 2;
+                    break;
+                default:
+                    stroke = '#a1a1aa'; // Zinc-400
+                    strokeWidth = 2;
+            }
+
+            if (isHighlighted) {
+                stroke = '#22d3ee'; // Cyan-400 highlight
+                strokeWidth += 2;
+                return {
+                    stroke,
+                    strokeWidth,
+                    filter: 'drop-shadow(0 0 4px rgba(34, 211, 238, 0.5))',
+                };
+            }
+
+            return { stroke, strokeWidth };
+        };
+
         // Helper to find all ancestors/descendants for highlighting
         const relatedNodeIds = new Set<string>();
         if (selectedNodeId) {
@@ -259,7 +262,7 @@ function MindMapInner() {
 
                 {/* Hidden File Input for JSON Upload */}
                 <div style={{ display: 'none' }}>
-                    <div ref={jsonUploadRef as any}>
+                    <div ref={jsonUploadRef as React.RefObject<HTMLDivElement>}>
                         <JsonUpload onJsonLoad={handleJsonLoad} />
                     </div>
                 </div>
@@ -348,6 +351,8 @@ function MindMapInner() {
                             });
                         }}
                         canDrillUp={drillStack.length > 0}
+                        layoutMode={layoutMode}
+                        onLayoutModeChange={setLayoutMode}
                     />
                 </Panel>
 
@@ -362,8 +367,8 @@ function MindMapInner() {
 
             <HoverCard
                 visible={!!hoveredNode && !selectedNodeId}
-                summary={(hoveredNode?.data as any)?.summary || ''}
-                label={(hoveredNode?.data as any)?.label || ''}
+                summary={hoveredNode?.data.summary || ''}
+                label={hoveredNode?.data.label || ''}
                 position={mousePosition}
             />
 

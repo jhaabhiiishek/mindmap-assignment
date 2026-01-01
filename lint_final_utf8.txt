@@ -1,0 +1,31 @@
+﻿
+> hierarchy@0.1.0 lint
+> eslint
+
+
+C:\Projects\hierarchy\components\mindmap\MindMap.tsx
+   72:8   warning  React Hook useEffect has a missing dependency: 'nodes.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   76:42  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   89:42  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  138:37  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  265:48  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\MindMapNode.tsx
+  131:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\SidePanel.tsx
+  30:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\TopToolbar.tsx
+   9:5  warning  'FileText' is defined but never used             @typescript-eslint/no-unused-vars
+  43:5  warning  'onFullDocumentation' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\hierarchy\lib\dataTransform.ts
+  152:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\store\useMindMapStore.ts
+  369:43  warning  'nodes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  369:50  warning  'edges' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 12 problems (7 errors, 5 warnings)
+

@@ -11,7 +11,9 @@ import {
     ChevronDown,
     Image as ImageIcon,
     FileJson,
-    Layout
+    Layout,
+    Network,
+    CircleDashed
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,8 @@ interface TopToolbarProps {
     onDownloadJson: () => void;
     onDownloadImage: (format: 'png' | 'jpeg' | 'svg') => void;
     canDrillUp?: boolean;
+    layoutMode: 'tree' | 'graph' | 'radial';
+    onLayoutModeChange: (mode: 'tree' | 'graph' | 'radial') => void;
 }
 
 export default function TopToolbar({
@@ -41,6 +45,8 @@ export default function TopToolbar({
     onDownloadJson,
     onDownloadImage,
     canDrillUp = false,
+    layoutMode,
+    onLayoutModeChange,
 }: TopToolbarProps) {
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
     const downloadMenuRef = useRef<HTMLDivElement>(null);
@@ -126,6 +132,53 @@ export default function TopToolbar({
                 <Expand className="w-3.5 h-3.5 text-pink-400" />
                 Fit View
             </button>
+
+            <div className="w-px h-6 bg-slate-700 mx-1" />
+
+            {/* Layout Toggle */}
+            <div className="flex bg-slate-800 rounded-lg p-0.5 border border-slate-600">
+                <button
+                    onClick={() => onLayoutModeChange('tree')}
+                    className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 transition-all',
+                        layoutMode === 'tree'
+                            ? 'bg-slate-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                    )}
+                    title="Tree View"
+                >
+                    <Layout className={cn("w-3.5 h-3.5", layoutMode === 'tree' ? "text-cyan-400" : "")} />
+                    Tree
+                </button>
+                <button
+                    onClick={() => onLayoutModeChange('graph')}
+                    className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 transition-all',
+                        layoutMode === 'graph'
+                            ? 'bg-slate-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                    )}
+                    title="Graph View"
+                >
+                    <Network className={cn("w-3.5 h-3.5", layoutMode === 'graph' ? "text-purple-400" : "")} />
+                    Graph
+                </button>
+                <button
+                    onClick={() => onLayoutModeChange('radial')}
+                    className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 transition-all',
+                        layoutMode === 'radial'
+                            ? 'bg-slate-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                    )}
+                    title="Radial View"
+                >
+                    <CircleDashed className={cn("w-3.5 h-3.5", layoutMode === 'radial' ? "text-orange-400" : "")} />
+                    Radial
+                </button>
+            </div>
+
+            <div className="w-px h-6 bg-slate-700 mx-1" />
 
             {/* Reset Layout */}
             <button

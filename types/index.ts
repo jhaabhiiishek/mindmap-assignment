@@ -55,7 +55,7 @@ export interface MindMapEdge {
   target: string;
   type?: string;
   animated?: boolean;
-  style?: Record<string, any>;
+  style?: React.CSSProperties | Record<string, unknown>;
 }
 
 /**

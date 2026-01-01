@@ -5,10 +5,25 @@ import { MindMapNode, MindMapEdge, HierarchicalNode } from '@/types';
 import {
     flattenHierarchy,
     calculateLayout,
+    calculateGraphLayout,
+    calculateRadialLayout,
     filterCollapsedNodes,
     updateHierarchicalData,
     addNodeToHierarchy,
 } from '@/lib/dataTransform';
+
+// Helper to apply the correct layout based on mode
+const computeLayout = (nodes: MindMapNode[], edges: MindMapEdge[], mode: 'tree' | 'graph' | 'radial') => {
+    switch (mode) {
+        case 'graph':
+            return calculateGraphLayout(nodes, edges);
+        case 'radial':
+            return calculateRadialLayout(nodes, edges);
+        case 'tree':
+        default:
+            return calculateLayout(nodes, edges);
+    }
+};
 
 interface MapData {
     id: string;
@@ -16,6 +31,7 @@ interface MapData {
     createdAt: Date;
     hierarchicalData: HierarchicalNode;
     collapsedNodeIds: Set<string>;
+    layoutMode?: 'tree' | 'graph' | 'radial';
 }
 
 interface MultiMapStore {
@@ -29,6 +45,8 @@ interface MultiMapStore {
     selectedNodeId: string | null;
     hierarchicalData: HierarchicalNode | null;
     collapsedNodeIds: Set<string>;
+    layoutMode: 'tree' | 'graph' | 'radial'; // New state
+
     // Drill state
     drillStack: string[]; // Stack of node IDs for drill navigation
     currentDrillNodeId: string | null;
@@ -42,6 +60,7 @@ interface MultiMapStore {
     initializeFromData: (data: HierarchicalNode) => void;
     setNodes: (nodes: MindMapNode[]) => void;
     setEdges: (edges: MindMapEdge[]) => void;
+    setLayoutMode: (mode: 'tree' | 'graph' | 'radial') => void; // New action
     onNodesChange: (changes: NodeChange[]) => void;
     onEdgesChange: (changes: EdgeChange[]) => void;
     updateNodeLabel: (nodeId: string, newLabel: string) => void;
@@ -84,6 +103,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             collapsedNodeIds: new Set<string>(),
             drillStack: [],
             currentDrillNodeId: null,
+            layoutMode: 'tree',
 
             // Multi-map actions
             createMap: (name?: string, template?: HierarchicalNode) => {
@@ -97,6 +117,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                     createdAt: new Date(),
                     hierarchicalData,
                     collapsedNodeIds: new Set<string>(),
+                    layoutMode: 'tree',
                 };
 
                 set((state) => ({
@@ -127,6 +148,9 @@ export const useMindMapStore = create<MultiMapStore>()(
                     collapsedIds = new Set(map.collapsedNodeIds as unknown as string[] || []);
                 }
 
+                // Restore layout mode
+                const layoutMode = map.layoutMode || 'tree';
+
                 // Flatten the hierarchical data to get all nodes and edges
                 const { nodes: allNodes, edges: allEdges } = flattenHierarchy(map.hierarchicalData);
 
@@ -138,7 +162,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                 );
 
                 // Calculate layout for visible nodes
-                const layoutedNodes = calculateLayout(visibleNodes, visibleEdges);
+                const layoutedNodes = computeLayout(visibleNodes, visibleEdges, layoutMode);
 
                 // Update state with the new map data
                 set({
@@ -147,6 +171,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                     edges: visibleEdges,
                     collapsedNodeIds: collapsedIds,
                     selectedNodeId: null, // Clear selection when switching maps
+                    layoutMode: layoutMode,
                 });
             },
 
@@ -169,8 +194,9 @@ export const useMindMapStore = create<MultiMapStore>()(
 
             // Existing actions (updated to sync with active map)
             initializeFromData: (data: HierarchicalNode) => {
+                const mode = get().layoutMode;
                 const { nodes, edges } = flattenHierarchy(data);
-                const layoutedNodes = calculateLayout(nodes, edges);
+                const layoutedNodes = computeLayout(nodes, edges, mode);
 
                 set({
                     hierarchicalData: data,
@@ -195,6 +221,22 @@ export const useMindMapStore = create<MultiMapStore>()(
 
             setEdges: (edges: MindMapEdge[]) => {
                 set({ edges });
+            },
+
+            setLayoutMode: (mode: 'tree' | 'graph' | 'radial') => {
+                set({ layoutMode: mode });
+
+                // Recalculate layout immediately
+                const { nodes, edges } = get();
+                const layoutedNodes = computeLayout(nodes, edges, mode);
+                set({ nodes: layoutedNodes });
+
+                // Sync with active map
+                const { maps, activeMapId } = get();
+                const updatedMaps = maps.map((m) =>
+                    m.id === activeMapId ? { ...m, layoutMode: mode } : m
+                );
+                set({ maps: updatedMaps });
             },
 
             onNodesChange: (changes: NodeChange[]) => {
@@ -291,7 +333,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             toggleNodeExpansion: (nodeId: string) => {
-                const { collapsedNodeIds, hierarchicalData } = get();
+                const { collapsedNodeIds, hierarchicalData, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 const newCollapsedIds = new Set(collapsedNodeIds);
@@ -316,7 +358,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                     newCollapsedIds
                 );
 
-                const layoutedNodes = calculateLayout(visibleNodes, visibleEdges);
+                const layoutedNodes = computeLayout(visibleNodes, visibleEdges, layoutMode);
 
                 set({
                     collapsedNodeIds: newCollapsedIds,
@@ -333,7 +375,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             addNode: (parentId: string, newNodeData: Partial<HierarchicalNode>) => {
-                const { hierarchicalData, nodes, edges } = get();
+                const { hierarchicalData, nodes, edges, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 const newNode: HierarchicalNode = {
@@ -348,7 +390,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                 const updatedHierarchy = addNodeToHierarchy(hierarchicalData, parentId, newNode);
 
                 const { nodes: newNodes, edges: newEdges } = flattenHierarchy(updatedHierarchy);
-                const layoutedNodes = calculateLayout(newNodes, newEdges);
+                const layoutedNodes = computeLayout(newNodes, newEdges, layoutMode);
 
                 set({
                     hierarchicalData: updatedHierarchy,
@@ -365,7 +407,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             deleteNode: (nodeId: string) => {
-                const { hierarchicalData, selectedNodeId } = get();
+                const { hierarchicalData, selectedNodeId, layoutMode } = get();
                 if (!hierarchicalData) return;
                 if (nodeId === hierarchicalData.id) return;
 
@@ -380,7 +422,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                 const updatedHierarchy = removeNodeFromHierarchy({ ...hierarchicalData }, nodeId);
 
                 const { nodes: newNodes, edges: newEdges } = flattenHierarchy(updatedHierarchy);
-                const layoutedNodes = calculateLayout(newNodes, newEdges);
+                const layoutedNodes = computeLayout(newNodes, newEdges, layoutMode);
 
                 set({
                     hierarchicalData: updatedHierarchy,
@@ -398,19 +440,19 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             resetLayout: () => {
-                const { nodes, edges } = get();
-                const layoutedNodes = calculateLayout(nodes, edges);
+                const { nodes, edges, layoutMode } = get();
+                const layoutedNodes = computeLayout(nodes, edges, layoutMode);
                 set({ nodes: layoutedNodes });
             },
 
             // Toolbar Actions
             expandAll: () => {
-                const { hierarchicalData } = get();
+                const { hierarchicalData, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 // Clear all collapsed nodes
                 const { nodes: allNodes, edges: allEdges } = flattenHierarchy(hierarchicalData);
-                const layoutedNodes = calculateLayout(allNodes, allEdges);
+                const layoutedNodes = computeLayout(allNodes, allEdges, layoutMode);
 
                 set({
                     collapsedNodeIds: new Set<string>(),
@@ -427,7 +469,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             collapseAll: () => {
-                const { hierarchicalData, nodes } = get();
+                const { hierarchicalData, nodes, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 // Collapse all nodes except root
@@ -445,7 +487,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                     nodesToCollapse
                 );
 
-                const layoutedNodes = calculateLayout(visibleNodes, visibleEdges);
+                const layoutedNodes = computeLayout(visibleNodes, visibleEdges, layoutMode);
 
                 set({
                     collapsedNodeIds: nodesToCollapse,
@@ -462,7 +504,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             drillDown: (nodeId?: string) => {
-                const { hierarchicalData, selectedNodeId, drillStack, currentDrillNodeId } = get();
+                const { hierarchicalData, selectedNodeId, drillStack, currentDrillNodeId, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 const targetNodeId = nodeId || selectedNodeId;
@@ -496,7 +538,7 @@ export const useMindMapStore = create<MultiMapStore>()(
 
                 // Flatten and layout only the subtree
                 const { nodes: subNodes, edges: subEdges } = flattenHierarchy(targetNode);
-                const layoutedNodes = calculateLayout(subNodes, subEdges);
+                const layoutedNodes = computeLayout(subNodes, subEdges, layoutMode);
 
                 set({
                     drillStack: newStack,
@@ -508,13 +550,13 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             drillUp: () => {
-                const { hierarchicalData, drillStack } = get();
+                const { hierarchicalData, drillStack, layoutMode } = get();
                 if (!hierarchicalData) return;
 
                 if (drillStack.length === 0) {
                     // Return to root view
                     const { nodes: allNodes, edges: allEdges } = flattenHierarchy(hierarchicalData);
-                    const layoutedNodes = calculateLayout(allNodes, allEdges);
+                    const layoutedNodes = computeLayout(allNodes, allEdges, layoutMode);
 
                     set({
                         drillStack: [],

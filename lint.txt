@@ -1,0 +1,114 @@
+﻿
+> hierarchy@0.1.0 lint
+> eslint
+
+
+C:\Projects\hierarchy\app\page.tsx
+  42:70  error    Unexpected any. Specify a different type                                                                                                                                @typescript-eslint/no-explicit-any
+  71:6   warning  React Hook useEffect has missing dependencies: 'createMap', 'initializeFromData', 'isInitialized', and 'switchMap'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Projects\hierarchy\components\mindmap\ImportModal.tsx
+   2:21  warning  'FileJson' is defined but never used            @typescript-eslint/no-unused-vars
+   2:31  warning  'FileText' is defined but never used            @typescript-eslint/no-unused-vars
+   2:41  warning  'AlignLeft' is defined but never used           @typescript-eslint/no-unused-vars
+  12:13  warning  'createMap' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  21:19  warning  'name' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+C:\Projects\hierarchy\components\mindmap\MindMap.tsx
+   72:8   warning  React Hook useEffect has a missing dependency: 'nodes.length'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+   76:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+   89:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  136:33  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  174:33  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getEdgeStyle`, but the source dependencies were [edges, nodes, selectedNodeId]. Inferred different dependency than source.
+
+C:\Projects\hierarchy\components\mindmap\MindMap.tsx:174:33
+  172 |     };
+  173 |
+> 174 |     const styledEdges = useMemo(() => {
+      |                                 ^^^^^^^
+> 175 |         // Helper to find all ancestors/descendants for highlighting
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 176 |         const relatedNodeIds = new Set<string>();
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 219 |         });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 220 |     }, [edges, nodes, selectedNodeId]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  221 |
+  222 |     return (
+  223 |         <div  react-hooks/preserve-manual-memoization
+  174:33  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getEdgeStyle`, but the source dependencies were [edges, nodes, selectedNodeId]. Inferred different dependency than source.
+
+C:\Projects\hierarchy\components\mindmap\MindMap.tsx:174:33
+  172 |     };
+  173 |
+> 174 |     const styledEdges = useMemo(() => {
+      |                                 ^^^^^^^
+> 175 |         // Helper to find all ancestors/descendants for highlighting
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 176 |         const relatedNodeIds = new Set<string>();
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 219 |         });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 220 |     }, [edges, nodes, selectedNodeId]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  221 |
+  222 |     return (
+  223 |         <div  react-hooks/preserve-manual-memoization
+  220:8   warning  React Hook useMemo has a missing dependency: 'getEdgeStyle'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  264:48  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  369:48  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  370:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\MindMapNode.tsx
+   15:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\SidePanel.tsx
+  43:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Projects\hierarchy\components\mindmap\SidePanel.tsx:43:13
+  41 |     useEffect(() => {
+  42 |         if (selectedNode) {
+> 43 |             setIsEditing(false); // Reset to read mode
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |             setEditValues({
+  45 |                 label: selectedNode.data.label,
+  46 |                 summary: selectedNode.data.summary,  react-hooks/set-state-in-effect
+  74:79  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\components\mindmap\TopToolbar.tsx
+   9:5  warning  'FileText' is defined but never used             @typescript-eslint/no-unused-vars
+  43:5  warning  'onFullDocumentation' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\hierarchy\lib\dataTransform.ts
+  138:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Projects\hierarchy\store\useMindMapStore.ts
+  369:43  warning  'nodes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  369:50  warning  'edges' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\hierarchy\types\index.ts
+  58:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 34 problems (22 errors, 12 warnings)
+

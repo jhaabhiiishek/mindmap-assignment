@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
     "@types/dagre": "^0.7.53",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
+    "d3-force": "^3.0.0",
     "dagre": "^0.8.5",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.562.0",

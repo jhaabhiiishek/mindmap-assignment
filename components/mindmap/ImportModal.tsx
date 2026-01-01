@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, FileJson, FileText, AlignLeft } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMindMapStore } from '@/store/useMindMapStore';
 import { parseJson, parseIndentedText } from '@/lib/parsers';
@@ -9,7 +9,6 @@ interface ImportModalProps {
 }
 
 export default function ImportModal({ onClose }: ImportModalProps) {
-    const { createMap } = useMindMapStore();
     const [activeTab, setActiveTab] = useState<'upload' | 'paste'>('upload');
     const [pasteContent, setPasteContent] = useState('');
     const [mapName, setMapName] = useState('');
@@ -18,7 +17,6 @@ export default function ImportModal({ onClose }: ImportModalProps) {
 
     const handleImport = async (content: string, type: 'json' | 'text') => {
         try {
-            const name = mapName.trim() || 'Imported Map';
             let data;
 
             if (type === 'json') {

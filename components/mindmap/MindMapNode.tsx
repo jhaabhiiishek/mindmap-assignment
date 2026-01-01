@@ -12,11 +12,11 @@ import { useMindMapStore } from '@/store/useMindMapStore';
  */
 const MindMapNode = memo((props: NodeProps) => {
     const { data, selected, id } = props;
-    const label = (data as any).label as string;
-    const nodeType = (data as any).nodeType as 'root' | 'child' | 'grandchild';
-    const depth = (data as any).depth as number;
-    const hasChildren = (data as any).hasChildren as boolean;
-    const isExpanded = (data as any).isExpanded as boolean;
+    const label = data.label as string;
+    const nodeType = data.nodeType as 'root' | 'child' | 'grandchild';
+    const depth = data.depth as number;
+    const hasChildren = data.hasChildren as boolean;
+    const isExpanded = data.isExpanded as boolean;
 
     const { toggleNodeExpansion } = useMindMapStore();
 
@@ -128,7 +128,7 @@ const MindMapNode = memo((props: NodeProps) => {
                         'animate-pulse'
                     )}
                 >
-                    {(data as any).childCount || 0}+ hidden
+                    {data.childCount || 0}+ hidden
                 </div>
             )}
 
