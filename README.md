@@ -2,6 +2,9 @@
 
 A data-driven, interactive mindmap visualization built with Next.js, React Flow, and Zustand.
 
+Video link:
+[https://drive.google.com/file/d/1noHtn5snrBa4iFBKeznUGjn3rwcpdReS/view?usp=sharing](https://drive.google.com/file/d/1noHtn5snrBa4iFBKeznUGjn3rwcpdReS/view?usp=sharing)
+
 ## 🚀 Getting Started
 
 1. **Install Dependencies**
