@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import {
     ReactFlow,
     Background,
@@ -29,6 +29,7 @@ function MindMapInner() {
         selectNode,
         selectedNodeId,
         resetLayout,
+        activeMapId,
     } = useMindMapStore();
 
     const reactFlowInstance = useReactFlow();
@@ -39,6 +40,21 @@ function MindMapInner() {
 
     // Register custom node types
     const nodeTypes = useMemo(() => ({ mindmapNode: MindMapNode }), []);
+
+    // Fit view when switching maps
+    useEffect(() => {
+        if (nodes.length > 0 && activeMapId) {
+            // Small delay to ensure nodes are rendered before fitting
+            const timer = setTimeout(() => {
+                reactFlowInstance.fitView({
+                    padding: 0.15,
+                    maxZoom: 1,
+                    duration: 400
+                });
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [activeMapId, reactFlowInstance]);
 
     // Handle node click for selection
     const handleNodeClick = useCallback(

@@ -18,6 +18,7 @@ const MindMap = dynamic(() => import('@/components/mindmap/MindMap'), {
 
 export default function Home() {
   const [sidebarWidth, setSidebarWidth] = useState(256);
+  const [isInitialized, setIsInitialized] = useState(false);
   const {
     maps,
     activeMapId,
@@ -28,16 +29,40 @@ export default function Home() {
   } = useMindMapStore();
 
   useEffect(() => {
-    // Initialize with first map if no maps exist
-    if (maps.length === 0) {
-      createMap('Enterprise Software Architecture', initialData as any);
-    } else if (activeMapId && maps.find((m) => m.id === activeMapId)) {
-      // Load active map
-      const activeMap = maps.find((m) => m.id === activeMapId);
-      if (activeMap) {
-        initializeFromData(activeMap.hierarchicalData);
+    // Only run once on mount
+    if (isInitialized) return;
+
+    // Small delay to ensure zustand persist middleware has loaded from localStorage
+    const timer = setTimeout(() => {
+      const currentMaps = useMindMapStore.getState().maps;
+      const currentActiveId = useMindMapStore.getState().activeMapId;
+
+      // If no maps exist (first time user), create default map
+      if (currentMaps.length === 0) {
+        createMap('Enterprise Software Architecture', initialData as any);
+      } else {
+        // Maps exist from localStorage
+        // If no active map is set, activate the first one
+        if (!currentActiveId) {
+          switchMap(currentMaps[0].id);
+        } else {
+          // Active map is set, just load it
+          const activeMap = currentMaps.find((m) => m.id === currentActiveId);
+          if (activeMap) {
+            initializeFromData(activeMap.hierarchicalData);
+            // Restore collapsed state
+            const collapsedIds = activeMap.collapsedNodeIds instanceof Set
+              ? activeMap.collapsedNodeIds
+              : new Set(activeMap.collapsedNodeIds || []);
+            useMindMapStore.setState({ collapsedNodeIds: collapsedIds });
+          }
+        }
       }
-    }
+
+      setIsInitialized(true);
+    }, 100); // Small delay for persistence to load
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (

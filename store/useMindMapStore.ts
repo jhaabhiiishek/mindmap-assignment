@@ -102,11 +102,35 @@ export const useMindMapStore = create<MultiMapStore>()(
 
                 if (!map) return;
 
+                // Set active map ID first
                 set({ activeMapId: mapId });
-                get().initializeFromData(map.hierarchicalData);
 
-                // Restore collapsed state
-                set({ collapsedNodeIds: map.collapsedNodeIds });
+                // Ensure collapsedNodeIds is a Set (might be array from localStorage)
+                const collapsedIds = map.collapsedNodeIds instanceof Set
+                    ? map.collapsedNodeIds
+                    : new Set(map.collapsedNodeIds || []);
+
+                // Flatten the hierarchical data to get all nodes and edges
+                const { nodes: allNodes, edges: allEdges } = flattenHierarchy(map.hierarchicalData);
+
+                // Filter based on collapsed state
+                const { nodes: visibleNodes, edges: visibleEdges } = filterCollapsedNodes(
+                    allNodes,
+                    allEdges,
+                    collapsedIds
+                );
+
+                // Calculate layout for visible nodes
+                const layoutedNodes = calculateLayout(visibleNodes, visibleEdges);
+
+                // Update state with the new map data
+                set({
+                    hierarchicalData: map.hierarchicalData,
+                    nodes: layoutedNodes,
+                    edges: visibleEdges,
+                    collapsedNodeIds: collapsedIds,
+                    selectedNodeId: null, // Clear selection when switching maps
+                });
             },
 
             deleteMap: (mapId: string) => {
