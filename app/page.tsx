@@ -51,9 +51,14 @@ export default function Home() {
           if (activeMap) {
             initializeFromData(activeMap.hierarchicalData);
             // Restore collapsed state
-            const collapsedIds = activeMap.collapsedNodeIds instanceof Set
-              ? activeMap.collapsedNodeIds
-              : new Set(activeMap.collapsedNodeIds || []);
+            let collapsedIds = new Set<string>();
+            if (activeMap.collapsedNodeIds instanceof Set) {
+              collapsedIds = activeMap.collapsedNodeIds;
+            } else if (Array.isArray(activeMap.collapsedNodeIds)) {
+              collapsedIds = new Set(activeMap.collapsedNodeIds);
+            } else {
+              collapsedIds = new Set(activeMap.collapsedNodeIds as unknown as string[] || []);
+            }
             useMindMapStore.setState({ collapsedNodeIds: collapsedIds });
           }
         }

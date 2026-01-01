@@ -25,6 +25,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* React Flow Base Styles */
+.react-flow {
+  background-color: #2d3748 !important;
+  /* Dark blue-gray background like reference */
+}
+
 /* React Flow Custom Styling */
 .react-flow-custom {
   background: #000000;
@@ -68,4 +74,54 @@ body {
 /* Hide attribution */
 .react-flow__attribution {
   display: none;
+}
+
+/* React Flow Controls Customization */
+.react-flow__controls {
+  background-color: #020617 !important;
+  /* slate-950 - Darker */
+  border: 1px solid #1e293b !important;
+  /* slate-800 */
+  border-radius: 0.75rem !important;
+  /* rounded-xl */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -1px rgb(0 0 0 / 0.3) !important;
+  padding: 4px !important;
+  overflow: hidden !important;
+}
+
+.react-flow__controls-button {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #1e293b !important;
+  /* slate-800 */
+  border-radius: 0.5rem !important;
+  margin-bottom: 2px !important;
+  width: 32px !important;
+  height: 32px !important;
+  transition: all 0.2s ease-in-out !important;
+  color: #94a3b8 !important;
+  /* slate-400 */
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: #1e293b !important;
+  /* slate-800 */
+  color: #22d3ee !important;
+  /* cyan-400 */
+  transform: scale(1.05);
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+}
+
+.react-flow__controls-button:active {
+  transform: scale(0.95);
 }

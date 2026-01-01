@@ -6,8 +6,8 @@ import { HierarchicalNode, MindMapNode, MindMapEdge } from '@/types';
  */
 const LAYOUT_CONFIG = {
     rankdir: 'TB', // Top to Bottom
-    nodesep: 100,  // Horizontal spacing between nodes
-    ranksep: 150,  // Vertical spacing between ranks
+    nodesep: 200,  // Increased horizontal spacing for step edges
+    ranksep: 200,  // Increased vertical spacing for step edges
     nodeWidth: 250,
     nodeHeight: 80,
 };
@@ -52,7 +52,7 @@ export function flattenHierarchy(
             id: `e-${parentId}-${rootNode.id}`,
             source: parentId,
             target: rootNode.id,
-            type: 'smoothstep',
+            type: 'step', // Orthogonal lines
             animated: false,
         };
         edges.push(edge);

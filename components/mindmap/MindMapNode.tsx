@@ -20,52 +20,67 @@ const MindMapNode = memo((props: NodeProps) => {
 
     const { toggleNodeExpansion } = useMindMapStore();
 
-    // Determine styling based on depth - X/Grok inspired black/white/red theme
+    // Determine styling based on depth - Reference theme: blue/green/orange/purple
     const getNodeStyles = () => {
         switch (depth) {
-            case 0: // Root node - Bold red accent
+            case 0: // Root node - Large blue circle
                 return {
                     container: cn(
-                        'w-[300px] min-h-[110px] rounded-xl',
-                        'bg-gradient-to-br from-red-600 via-red-500 to-red-700',
-                        'border-2 border-red-400',
-                        'shadow-2xl shadow-red-500/30',
+                        'w-[220px] h-[220px] rounded-full', // Circular/oval for root
+                        'bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600',
+                        'border-4 border-blue-300',
+                        'shadow-2xl shadow-blue-500/40',
                         'transition-all duration-300 ease-out',
-                        selected ? 'ring-4 ring-red-400 ring-offset-2 ring-offset-black' : '',
-                        'hover:scale-105 hover:shadow-red-500/50'
+                        selected ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-700' : '',
+                        'hover:scale-105 hover:shadow-blue-400/60'
                     ),
-                    text: 'text-2xl font-bold text-white',
-                    badge: 'bg-red-400/30 text-red-100',
+                    text: 'text-2xl font-bold text-gray-900',
+                    badge: 'bg-blue-300/40 text-gray-800',
                 };
 
-            case 1: // Child nodes - Dark with red border
+            case 1: // Child nodes - Green ovals
                 return {
                     container: cn(
-                        'w-[260px] min-h-[95px] rounded-xl',
-                        'bg-gradient-to-br from-zinc-900 via-zinc-800 to-black',
-                        'border-2 border-red-500/60',
-                        'shadow-xl shadow-black/50',
+                        'w-[180px] h-[100px] rounded-full', // Oval shape
+                        'bg-gradient-to-br from-green-400 via-green-500 to-green-600',
+                        'border-3 border-green-300',
+                        'shadow-xl shadow-green-500/30',
                         'transition-all duration-300 ease-out',
-                        selected ? 'ring-4 ring-red-400 ring-offset-2 ring-offset-black' : '',
-                        'hover:scale-105 hover:shadow-red-500/30 hover:border-red-400'
+                        selected ? 'ring-4 ring-green-400 ring-offset-2 ring-offset-slate-700' : '',
+                        'hover:scale-105 hover:shadow-green-400/50'
                     ),
-                    text: 'text-xl font-semibold text-white',
-                    badge: 'bg-red-500/20 text-red-200',
+                    text: 'text-lg font-semibold text-gray-900',
+                    badge: 'bg-green-300/40 text-gray-800',
                 };
 
-            default: // Grandchild - Lighter dark with subtle red
+            case 2: // Level 2 - Orange ovals
                 return {
                     container: cn(
-                        'w-[240px] min-h-[85px] rounded-xl',
-                        'bg-gradient-to-br from-zinc-800 via-zinc-700 to-zinc-900',
-                        'border border-zinc-600',
-                        'shadow-lg shadow-black/40',
+                        'w-[160px] h-[90px] rounded-full', // Oval shape
+                        'bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500',
+                        'border-2 border-orange-200',
+                        'shadow-lg shadow-orange-400/30',
                         'transition-all duration-300 ease-out',
-                        selected ? 'ring-4 ring-red-400 ring-offset-2 ring-offset-black' : '',
-                        'hover:scale-105 hover:shadow-red-500/20 hover:border-red-500/40'
+                        selected ? 'ring-4 ring-orange-400 ring-offset-2 ring-offset-slate-700' : '',
+                        'hover:scale-105 hover:shadow-orange-400/50'
                     ),
-                    text: 'text-lg font-medium text-gray-100',
-                    badge: 'bg-zinc-700/50 text-gray-300',
+                    text: 'text-base font-medium text-gray-900',
+                    badge: 'bg-orange-200/40 text-gray-800',
+                };
+
+            default: // Level 3+ - Purple/Pink ovals
+                return {
+                    container: cn(
+                        'w-[140px] h-[80px] rounded-full', // Oval shape
+                        'bg-gradient-to-br from-purple-300 via-purple-400 to-pink-400',
+                        'border-2 border-purple-200',
+                        'shadow-lg shadow-purple-400/30',
+                        'transition-all duration-300 ease-out',
+                        selected ? 'ring-4 ring-purple-400 ring-offset-2 ring-offset-slate-700' : '',
+                        'hover:scale-105 hover:shadow-purple-400/50'
+                    ),
+                    text: 'text-sm font-medium text-gray-900',
+                    badge: 'bg-purple-200/40 text-gray-800',
                 };
         }
     };
@@ -74,7 +89,7 @@ const MindMapNode = memo((props: NodeProps) => {
 
     return (
         <div className={cn(styles.container, 'relative')}>
-            {/* Expand/Collapse Button - Red themed */}
+            {/* Expand/Collapse Button - Cyan themed to match toolbar */}
             {hasChildren && (
                 <button
                     onClick={(e) => {
@@ -84,12 +99,12 @@ const MindMapNode = memo((props: NodeProps) => {
                     className={cn(
                         'absolute -top-3 -right-3 z-10',
                         'w-7 h-7 rounded-full',
-                        'bg-red-600 hover:bg-red-500',
-                        'border-2 border-red-400',
+                        'bg-cyan-600 hover:bg-cyan-500',
+                        'border-2 border-cyan-400',
                         'flex items-center justify-center',
                         'transition-all duration-200',
                         'hover:scale-110',
-                        'shadow-lg shadow-red-500/30'
+                        'shadow-lg shadow-cyan-500/30'
                     )}
                     title={isExpanded ? 'Collapse children' : 'Expand children'}
                 >
@@ -107,9 +122,9 @@ const MindMapNode = memo((props: NodeProps) => {
                     className={cn(
                         'absolute -bottom-2 left-1/2 -translate-x-1/2 z-10',
                         'px-2 py-0.5 rounded-full',
-                        'bg-red-600 border border-red-400',
+                        'bg-cyan-600 border border-cyan-400',
                         'text-[10px] font-bold text-white',
-                        'shadow-lg shadow-red-500/30',
+                        'shadow-lg shadow-cyan-500/30',
                         'animate-pulse'
                     )}
                 >

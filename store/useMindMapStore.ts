@@ -29,6 +29,9 @@ interface MultiMapStore {
     selectedNodeId: string | null;
     hierarchicalData: HierarchicalNode | null;
     collapsedNodeIds: Set<string>;
+    // Drill state
+    drillStack: string[]; // Stack of node IDs for drill navigation
+    currentDrillNodeId: string | null;
 
     // Multi-map actions
     createMap: (name?: string, template?: HierarchicalNode) => void;
@@ -49,6 +52,13 @@ interface MultiMapStore {
     addNode: (parentId: string, newNode: Partial<HierarchicalNode>) => void;
     deleteNode: (nodeId: string) => void;
     resetLayout: () => void;
+
+    // Toolbar actions
+    expandAll: () => void;
+    collapseAll: () => void;
+    drillDown: (nodeId?: string) => void;
+    drillUp: () => void;
+    downloadMap: () => void;
 }
 
 // Default template for new maps
@@ -72,6 +82,8 @@ export const useMindMapStore = create<MultiMapStore>()(
             selectedNodeId: null,
             hierarchicalData: null,
             collapsedNodeIds: new Set<string>(),
+            drillStack: [],
+            currentDrillNodeId: null,
 
             // Multi-map actions
             createMap: (name?: string, template?: HierarchicalNode) => {
@@ -84,7 +96,7 @@ export const useMindMapStore = create<MultiMapStore>()(
                     name: mapName,
                     createdAt: new Date(),
                     hierarchicalData,
-                    collapsedNodeIds: new Set(),
+                    collapsedNodeIds: new Set<string>(),
                 };
 
                 set((state) => ({
@@ -106,9 +118,14 @@ export const useMindMapStore = create<MultiMapStore>()(
                 set({ activeMapId: mapId });
 
                 // Ensure collapsedNodeIds is a Set (might be array from localStorage)
-                const collapsedIds = map.collapsedNodeIds instanceof Set
-                    ? map.collapsedNodeIds
-                    : new Set(map.collapsedNodeIds || []);
+                let collapsedIds = new Set<string>();
+                if (map.collapsedNodeIds instanceof Set) {
+                    collapsedIds = map.collapsedNodeIds;
+                } else if (Array.isArray(map.collapsedNodeIds)) {
+                    collapsedIds = new Set(map.collapsedNodeIds);
+                } else {
+                    collapsedIds = new Set(map.collapsedNodeIds as unknown as string[] || []);
+                }
 
                 // Flatten the hierarchical data to get all nodes and edges
                 const { nodes: allNodes, edges: allEdges } = flattenHierarchy(map.hierarchicalData);
@@ -181,7 +198,7 @@ export const useMindMapStore = create<MultiMapStore>()(
             },
 
             onNodesChange: (changes: NodeChange[]) => {
-                set({ nodes: applyNodeChanges(changes, get().nodes) });
+                set({ nodes: applyNodeChanges(changes, get().nodes) as MindMapNode[] });
             },
 
             onEdgesChange: (changes: EdgeChange[]) => {
@@ -385,13 +402,169 @@ export const useMindMapStore = create<MultiMapStore>()(
                 const layoutedNodes = calculateLayout(nodes, edges);
                 set({ nodes: layoutedNodes });
             },
+
+            // Toolbar Actions
+            expandAll: () => {
+                const { hierarchicalData } = get();
+                if (!hierarchicalData) return;
+
+                // Clear all collapsed nodes
+                const { nodes: allNodes, edges: allEdges } = flattenHierarchy(hierarchicalData);
+                const layoutedNodes = calculateLayout(allNodes, allEdges);
+
+                set({
+                    collapsedNodeIds: new Set<string>(),
+                    nodes: layoutedNodes,
+                    edges: allEdges,
+                });
+
+                // Sync with active map
+                const { maps, activeMapId } = get();
+                const updatedMaps = maps.map((m) =>
+                    m.id === activeMapId ? { ...m, collapsedNodeIds: new Set<string>() } : m
+                );
+                set({ maps: updatedMaps });
+            },
+
+            collapseAll: () => {
+                const { hierarchicalData, nodes } = get();
+                if (!hierarchicalData) return;
+
+                // Collapse all nodes except root
+                const nodesToCollapse = new Set<string>();
+                nodes.forEach((node) => {
+                    if (node.id !== hierarchicalData.id && node.data.hasChildren) {
+                        nodesToCollapse.add(node.id);
+                    }
+                });
+
+                const { nodes: allNodes, edges: allEdges } = flattenHierarchy(hierarchicalData);
+                const { nodes: visibleNodes, edges: visibleEdges } = filterCollapsedNodes(
+                    allNodes,
+                    allEdges,
+                    nodesToCollapse
+                );
+
+                const layoutedNodes = calculateLayout(visibleNodes, visibleEdges);
+
+                set({
+                    collapsedNodeIds: nodesToCollapse,
+                    nodes: layoutedNodes,
+                    edges: visibleEdges,
+                });
+
+                // Sync with active map
+                const { maps, activeMapId } = get();
+                const updatedMaps = maps.map((m) =>
+                    m.id === activeMapId ? { ...m, collapsedNodeIds: nodesToCollapse } : m
+                );
+                set({ maps: updatedMaps });
+            },
+
+            drillDown: (nodeId?: string) => {
+                const { hierarchicalData, selectedNodeId, drillStack, currentDrillNodeId } = get();
+                if (!hierarchicalData) return;
+
+                const targetNodeId = nodeId || selectedNodeId;
+                if (!targetNodeId) {
+                    alert('Please select a node to drill down into');
+                    return;
+                }
+
+                // Find the node in hierarchical data
+                const findNode = (node: HierarchicalNode, id: string): HierarchicalNode | null => {
+                    if (node.id === id) return node;
+                    if (node.children) {
+                        for (const child of node.children) {
+                            const found = findNode(child, id);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                };
+
+                const targetNode = findNode(hierarchicalData, targetNodeId);
+                if (!targetNode || !targetNode.children || targetNode.children.length === 0) {
+                    alert('Selected node has no children to drill into');
+                    return;
+                }
+
+                // Add current node to drill stack
+                const newStack = currentDrillNodeId
+                    ? [...drillStack, currentDrillNodeId]
+                    : drillStack;
+
+                // Flatten and layout only the subtree
+                const { nodes: subNodes, edges: subEdges } = flattenHierarchy(targetNode);
+                const layoutedNodes = calculateLayout(subNodes, subEdges);
+
+                set({
+                    drillStack: newStack,
+                    currentDrillNodeId: targetNodeId,
+                    nodes: layoutedNodes,
+                    edges: subEdges,
+                    selectedNodeId: null,
+                });
+            },
+
+            drillUp: () => {
+                const { hierarchicalData, drillStack } = get();
+                if (!hierarchicalData) return;
+
+                if (drillStack.length === 0) {
+                    // Return to root view
+                    const { nodes: allNodes, edges: allEdges } = flattenHierarchy(hierarchicalData);
+                    const layoutedNodes = calculateLayout(allNodes, allEdges);
+
+                    set({
+                        drillStack: [],
+                        currentDrillNodeId: null,
+                        nodes: layoutedNodes,
+                        edges: allEdges,
+                    });
+                    return;
+                }
+
+                // Pop from stack and drill to that node
+                const newStack = [...drillStack];
+                const parentNodeId = newStack.pop();
+
+                if (parentNodeId) {
+                    // Re-drill to parent
+                    get().drillDown(parentNodeId);
+                    // Fix the stack (drillDown adds to stack, but we want to use our popped stack)
+                    set({ drillStack: newStack });
+                }
+            },
+
+            downloadMap: () => {
+                const { hierarchicalData, activeMapId, maps } = get();
+                if (!hierarchicalData) return;
+
+                const activeMap = maps.find((m) => m.id === activeMapId);
+                const fileName = activeMap ? `${activeMap.name.replace(/\s+/g, '_')}.json` : 'mindmap.json';
+
+                // Create downloadable JSON
+                const dataStr = JSON.stringify(hierarchicalData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                // Trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            },
         }),
         {
             name: 'mindmap-storage',
             partialize: (state) => ({
                 maps: state.maps.map((m) => ({
                     ...m,
-                    collapsedNodeIds: Array.from(m.collapsedNodeIds),
+                    collapsedNodeIds: Array.from(m.collapsedNodeIds as Set<string>),
                 })),
                 activeMapId: state.activeMapId,
             }),
