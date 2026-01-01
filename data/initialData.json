@@ -1,0 +1,130 @@
+{
+  "id": "root",
+  "label": "Enterprise Software Architecture",
+  "type": "root",
+  "summary": "Complete overview of modern enterprise software architecture patterns and practices",
+  "details": "This mindmap provides a comprehensive view of enterprise software architecture, covering key domains including frontend development, backend systems, infrastructure, and data management. Each branch explores critical concepts, technologies, and best practices essential for building scalable, maintainable enterprise applications.",
+  "position": { "x": 0, "y": 0 },
+  "children": [
+    {
+      "id": "frontend",
+      "label": "Frontend Development",
+      "type": "child",
+      "summary": "Modern frontend architecture including frameworks, state management, and UI patterns",
+      "details": "Frontend development encompasses the client-side of applications, focusing on user interface, user experience, and client-side logic. Key areas include React ecosystem, state management patterns, component architecture, performance optimization, and accessibility standards.",
+      "children": [
+        {
+          "id": "react-ecosystem",
+          "label": "React Ecosystem",
+          "type": "grandchild",
+          "summary": "React, Next.js, and related tools for building modern web applications",
+          "details": "The React ecosystem includes core React library, meta-frameworks like Next.js and Remix, component libraries, testing tools, and developer experience enhancements. Next.js provides server-side rendering, static site generation, and the new App Router for building full-stack applications."
+        },
+        {
+          "id": "state-management",
+          "label": "State Management",
+          "type": "grandchild",
+          "summary": "Patterns and libraries for managing application state (Redux, Zustand, Context)",
+          "details": "State management is crucial for complex applications. Options range from lightweight solutions like Zustand and Jotai to comprehensive tools like Redux Toolkit. Choose based on complexity: Context API for simple cases, Zustand for medium apps, Redux for large-scale applications requiring time-travel debugging and middleware."
+        },
+        {
+          "id": "ui-components",
+          "label": "Component Libraries",
+          "type": "grandchild",
+          "summary": "Reusable UI component systems (Material-UI, Chakra, Radix, shadcn/ui)",
+          "details": "Component libraries accelerate development by providing pre-built, accessible UI components. Modern approaches favor headless components (Radix UI, Headless UI) combined with utility-first CSS (Tailwind). shadcn/ui represents a new paradigm of copy-paste components you own and customize."
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "label": "Backend Systems",
+      "type": "child",
+      "summary": "Server-side architecture, APIs, microservices, and business logic",
+      "details": "Backend systems handle business logic, data processing, authentication, and serve as the API layer for frontend applications. Modern backend architecture emphasizes scalability, maintainability, and observability through microservices, event-driven patterns, and robust API design.",
+      "children": [
+        {
+          "id": "api-design",
+          "label": "API Design",
+          "type": "grandchild",
+          "summary": "REST, GraphQL, gRPC, and API versioning strategies",
+          "details": "API design determines how services communicate. REST remains popular for its simplicity. GraphQL excels when clients need flexible data fetching. gRPC offers performance benefits for service-to-service communication. Consider versioning strategies early to ensure backward compatibility."
+        },
+        {
+          "id": "microservices",
+          "label": "Microservices Architecture",
+          "type": "grandchild",
+          "summary": "Distributed system patterns, service mesh, and inter-service communication",
+          "details": "Microservices decompose applications into independent, deployable services. Benefits include scalability, technology diversity, and team autonomy. Challenges include distributed debugging, data consistency, and operational complexity. Service meshes (Istio, Linkerd) help manage communication and observability."
+        },
+        {
+          "id": "authentication",
+          "label": "Authentication & Authorization",
+          "type": "grandchild",
+          "summary": "OAuth, JWT, RBAC, and security best practices",
+          "details": "Security is paramount. Use OAuth 2.0 with OpenID Connect for authentication. JWTs for stateless token-based auth. Implement role-based (RBAC) or attribute-based (ABAC) access control. Always use HTTPS, validate inputs, and follow OWASP security guidelines."
+        }
+      ]
+    },
+    {
+      "id": "infrastructure",
+      "label": "Infrastructure & DevOps",
+      "type": "child",
+      "summary": "Cloud platforms, containerization, CI/CD, and monitoring",
+      "details": "Modern infrastructure emphasizes automation, scalability, and reliability. Cloud platforms (AWS, Azure, GCP) provide managed services. Containerization with Docker and orchestration with Kubernetes enable consistent deployments. CI/CD pipelines automate testing and deployment.",
+      "children": [
+        {
+          "id": "containerization",
+          "label": "Containerization",
+          "type": "grandchild",
+          "summary": "Docker, Kubernetes, and container orchestration strategies",
+          "details": "Containers package applications with dependencies for consistent environments. Docker simplifies container creation. Kubernetes orchestrates containers at scale, handling deployment, scaling, and self-healing. Consider managed Kubernetes (EKS, GKE, AKS) to reduce operational overhead."
+        },
+        {
+          "id": "cicd",
+          "label": "CI/CD Pipelines",
+          "type": "grandchild",
+          "summary": "Automated testing, deployment, and release management",
+          "details": "CI/CD automates the software delivery pipeline. Continuous Integration runs tests on every commit. Continuous Deployment/Delivery automates releases. Tools include GitHub Actions, GitLab CI, Jenkins, and CircleCI. Implement progressive rollouts and automated rollbacks for safety."
+        },
+        {
+          "id": "monitoring",
+          "label": "Monitoring & Observability",
+          "type": "grandchild",
+          "summary": "Metrics, logging, tracing, and alerting systems",
+          "details": "Observability provides insight into system behavior. The three pillars are metrics (Prometheus, Datadog), logs (ELK stack, Loki), and traces (Jaeger, Tempo). Implement comprehensive monitoring, set up meaningful alerts, and use dashboards for real-time visibility."
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data Management",
+      "type": "child",
+      "summary": "Databases, caching, data pipelines, and analytics",
+      "details": "Data management encompasses storage, retrieval, processing, and analysis. Choose databases based on use case: relational for structured data, document stores for flexibility, graph databases for relationships. Implement caching strategies and data pipelines for analytics.",
+      "children": [
+        {
+          "id": "databases",
+          "label": "Database Systems",
+          "type": "grandchild",
+          "summary": "SQL (PostgreSQL, MySQL) and NoSQL (MongoDB, Redis, DynamoDB)",
+          "details": "Relational databases (PostgreSQL, MySQL) excel at structured data with complex relationships. NoSQL options include document stores (MongoDB), key-value stores (Redis), wide-column stores (Cassandra), and graph databases (Neo4j). Choose based on data structure, query patterns, and scale requirements."
+        },
+        {
+          "id": "caching",
+          "label": "Caching Strategies",
+          "type": "grandchild",
+          "summary": "Redis, CDN, application-level caching, and cache invalidation",
+          "details": "Caching dramatically improves performance. Implement multiple layers: CDN for static assets, Redis for session/API data, application-level caching with techniques like memoization. Cache invalidation is critical—use TTL, event-based invalidation, or cache-aside patterns."
+        },
+        {
+          "id": "data-pipelines",
+          "label": "Data Pipelines",
+          "type": "grandchild",
+          "summary": "ETL processes, stream processing, and data warehousing",
+          "details": "Data pipelines move and transform data between systems. ETL (Extract, Transform, Load) processes batch data. Stream processing (Kafka, Flink) handles real-time data. Data warehouses (Snowflake, BigQuery, Redshift) enable analytics. Ensure data quality, lineage, and governance."
+        }
+      ]
+    }
+  ]
+}
